@@ -132,6 +132,9 @@ jobs:
 
             cd /srv/apps/tirely
 
+            # Link .env to database
+            ln -sf /srv/apps/tirely/.env.production /srv/apps/tirely/packages/database/.env
+
             # Install production dependencies
             npm ci --omit=dev
 
