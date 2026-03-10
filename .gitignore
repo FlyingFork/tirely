@@ -19,7 +19,7 @@ out/
 /out/
 
 # Prisma
-packages/database/generated/
+packages/database/src/generated/
 
 # Environment files
 .env
