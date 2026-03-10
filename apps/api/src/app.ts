@@ -11,15 +11,18 @@ import { healthRoutes } from './routes/v1/health.js';
 
 export const buildApp = async () => {
   const app = Fastify({
-    logger: {
-      transport: {
-        target: 'pino-pretty',
-        options: {
-          translateTime: 'HH:MM:ss Z',
-          ignore: 'pid,hostname',
-        },
-      },
-    },
+    logger:
+      process.env.NODE_ENV === 'production'
+        ? true
+        : {
+            transport: {
+              target: 'pino-pretty',
+              options: {
+                translateTime: 'HH:MM:ss Z',
+                ignore: 'pid,hostname',
+              },
+            },
+          },
   });
 
   // Error Handler
