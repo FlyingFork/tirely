@@ -45,8 +45,8 @@ jobs:
 
       - name: Prepare Next.js standalone
         run: |
-          cp -r apps/web/public apps/web/.next/standalone/apps/web/public
-          cp -r apps/web/.next/static apps/web/.next/standalone/apps/web/.next/static
+          [ -d apps/web/public ] && cp -r apps/web/public apps/web/.next/standalone/apps/web/public
+          [ -d apps/web/.next/static ] && cp -r apps/web/.next/static apps/web/.next/standalone/apps/web/.next/static
 
       - name: Upload API build artifact
         uses: actions/upload-artifact@v4
