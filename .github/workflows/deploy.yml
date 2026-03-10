@@ -29,6 +29,7 @@ jobs:
         run: |
           echo "${{ secrets.VPS_ENV_PRODUCTION }}" > .env
           echo "${{ secrets.VPS_ENV_PRODUCTION }}" > apps/web/.env
+          echo "${{ secrets.VPS_ENV_PRODUCTION }}" > packages/database/.env
 
       - name: Install dependencies
         run: npm ci
