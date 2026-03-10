@@ -62,7 +62,10 @@ jobs:
         with:
           name: web-build
           path: |
-            apps/web/
+            apps/web/.next/
+            apps/web/public/
+            apps/web/package.json
+            apps/web/next.config.*
           retention-days: 1
 
       - name: Upload root files
@@ -105,7 +108,7 @@ jobs:
           cp -r artifacts/api-build/* deploy/apps/api/
 
           # Web
-          cp -r artifacts/web-build/apps/web/* deploy/apps/web/
+          cp -r artifacts/web-build/* deploy/apps/web/
 
           # Packages
           cp -r artifacts/packages/* deploy/packages/
