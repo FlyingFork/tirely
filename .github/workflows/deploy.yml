@@ -138,6 +138,7 @@ jobs:
 
             # Add .env file
             echo "${{ secrets.VPS_ENV_PRODUCTION }}" > /srv/apps/tirely/.env.production
+            echo "${{ secrets.VPS_ENV_PRODUCTION }}" > /srv/apps/tirely/packages/database/.env
 
             # Install production dependencies
             npm ci --omit=dev
