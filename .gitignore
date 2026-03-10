@@ -1,0 +1,43 @@
+# Dependencies
+node_modules/
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+# Build outputs
+dist/
+.next/
+out/
+/build
+
+# Turbo
+.turbo/
+
+# Next.js
+/.next/
+/out/
+
+# Prisma
+packages/database/src/generated/
+
+# Environment files
+.env
+.env.local
+.env.production
+.env.*.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Test
+coverage/
+test-results/

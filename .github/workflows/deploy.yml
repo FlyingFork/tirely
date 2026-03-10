@@ -1,0 +1,149 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: '24'
+
+jobs:
+  # Job 1: Build
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npx turbo lint
+
+      - name: Typecheck
+        run: npx turbo check-types
+
+      - name: Create .env for build
+        run: |
+          echo "${{ secrets.VPS_ENV_PRODUCTION }}" > .env
+          echo "${{ secrets.VPS_ENV_PRODUCTION }}" > apps/web/.env
+
+      - name: Build all apps
+        run: npx turbo build
+
+      - name: Prepare Next.js standalone
+        run: |
+          cp -r apps/web/public apps/web/.next/standalone/apps/web/public
+          cp -r apps/web/.next/static apps/web/.next/standalone/apps/web/.next/static
+
+      - name: Upload API build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-build
+          path: |
+            apps/api/dist/
+            apps/api/package.json
+          retention-days: 1
+
+      - name: Upload Web build artifact (standalone)
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-build
+          path: |
+            apps/web/.next/standalone/
+          retention-days: 1
+
+      - name: Upload root files
+        uses: actions/upload-artifact@v4
+        with:
+          name: root-files
+          path: |
+            package.json
+            package-lock.json
+            turbo.json
+          retention-days: 1
+
+      - name: Upload packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: packages
+          path: packages/
+          retention-days: 1
+
+  # Job 2: Deploy
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+
+      - name: Prepare deployment bundle
+        run: |
+          mkdir -p deploy/apps/api deploy/apps/web deploy/packages
+
+          # Root files
+          cp artifacts/root-files/package.json deploy/
+          cp artifacts/root-files/package-lock.json deploy/
+          cp artifacts/root-files/turbo.json deploy/
+
+          # API
+          cp -r artifacts/api-build/* deploy/apps/api/
+
+          # Web
+          cp -r artifacts/web-build/apps/web/* deploy/apps/web/
+
+          # Packages
+          cp -r artifacts/packages/* deploy/packages/
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to VPS
+        run: |
+          rsync -avz --delete \
+            -e "ssh -i ~/.ssh/deploy_key" \
+            deploy/ \
+            ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/srv/apps/tirely/
+
+      - name: Install production deps & restart services
+        run: |
+          ssh -i ~/.ssh/deploy_key ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'ENDSSH'
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
+            cd /srv/apps/tirely
+
+            # Install production dependencies
+            npm ci --omit=dev
+
+            # Run database migrations
+            npx prisma migrate deploy --schema=packages/database/prisma/schema.prisma
+
+            # Restart services
+            sudo /bin/systemctl restart tirely-api
+            sudo /bin/systemctl restart tirely
+
+            echo "--- Deployment complete ---"
+            echo "API status:"
+            sudo /bin/systemctl is-active tirely-api
+            echo "Web status:"
+            sudo /bin/systemctl is-active tirely
+          ENDSSH

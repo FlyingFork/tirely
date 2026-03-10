@@ -1,0 +1,23 @@
+{
+  "name": "@tirely/validators",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "check-types": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@tirely/typescript": "*",
+    "@tirely/eslint": "*",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18",
+    "@tirely/testing": "*"
+  }
+}
