@@ -141,7 +141,8 @@ jobs:
             echo "${{ secrets.VPS_ENV_PRODUCTION }}" > /srv/apps/tirely/packages/database/.env
 
             # Install production dependencies
-            npm ci --omit=dev
+            npm ci
+            npm prune --omit=dev
 
             # Run database migrations
             cd /srv/apps/tirely/packages/database
