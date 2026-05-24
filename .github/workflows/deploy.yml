@@ -26,11 +26,13 @@ jobs:
           cache: 'npm'
 
       - name: Create .env for build
+        env:
+          VPS_ENV_PRODUCTION: ${{ secrets.VPS_ENV_PRODUCTION }}
         run: |
-          echo "${{ secrets.VPS_ENV_PRODUCTION }}" > .env
-          echo "${{ secrets.VPS_ENV_PRODUCTION }}" > apps/web/.env
-          echo "${{ secrets.VPS_ENV_PRODUCTION }}" > apps/api/.env
-          echo "${{ secrets.VPS_ENV_PRODUCTION }}" > packages/database/.env
+          printf '%s\n' "$VPS_ENV_PRODUCTION" > .env
+          printf '%s\n' "$VPS_ENV_PRODUCTION" > apps/web/.env
+          printf '%s\n' "$VPS_ENV_PRODUCTION" > apps/api/.env
+          printf '%s\n' "$VPS_ENV_PRODUCTION" > packages/database/.env
 
       - name: Install dependencies
         run: npm ci
@@ -131,16 +133,17 @@ jobs:
             ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}:/srv/apps/tirely/
 
       - name: Install production deps & restart services
+        env:
+          VPS_ENV_PRODUCTION: ${{ secrets.VPS_ENV_PRODUCTION }}
         run: |
+          printf '%s\n' "$VPS_ENV_PRODUCTION" | ssh -i ~/.ssh/deploy_key ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} 'cat > /srv/apps/tirely/.env.production'
+          printf '%s\n' "$VPS_ENV_PRODUCTION" | ssh -i ~/.ssh/deploy_key ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} 'cat > /srv/apps/tirely/packages/database/.env'
+
           ssh -i ~/.ssh/deploy_key ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} << 'ENDSSH'
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 
             cd /srv/apps/tirely
-
-            # Add .env file
-            echo "${{ secrets.VPS_ENV_PRODUCTION }}" > /srv/apps/tirely/.env.production
-            echo "${{ secrets.VPS_ENV_PRODUCTION }}" > /srv/apps/tirely/packages/database/.env
 
             # Install production dependencies
             npm ci
