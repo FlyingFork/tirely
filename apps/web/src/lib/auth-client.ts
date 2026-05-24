@@ -7,3 +7,11 @@ export const authClient = createAuthClient({
 });
 
 export const { signIn, signUp, signOut, useSession } = authClient;
+
+export interface SessionUser {
+  firstLogin?: boolean;
+  id?: string;
+  email?: string;
+  name?: string;
+  image?: string;
+}

@@ -7,17 +7,15 @@
   "types": "./src/index.ts",
   "scripts": {
     "check-types": "tsc --noEmit",
-    "lint": "eslint .",
-    "test": "vitest run"
+    "lint": "eslint ."
   },
   "dependencies": {
+    "@tirely/database": "*",
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@tirely/typescript": "*",
     "@tirely/eslint": "*",
-    "typescript": "^5.9.3",
-    "vitest": "^4.0.18",
-    "@tirely/testing": "*"
+    "@tirely/typescript": "*",
+    "typescript": "^5.9.3"
   }
 }

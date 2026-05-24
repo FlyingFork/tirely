@@ -11,18 +11,28 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "@radix-ui/react-toast": "^1.2.15",
+    "@radix-ui/themes": "^3.3.0",
+    "@hookform/resolvers": "^3.10.0",
+    "@tirely/database": "*",
+    "@tirely/types": "*",
+    "@tirely/validators": "*",
     "better-auth": "^1.5.4",
+    "lucide-react": "^0.577.0",
     "next": "^16.1.6",
-    "radix-ui": "^1.4.3",
     "react": "^19.2.4",
-    "react-dom": "^19.2.4"
+    "react-dom": "^19.2.4",
+    "react-hook-form": "^7.55.0",
+    "recharts": "^2.15.4"
   },
   "devDependencies": {
+    "@next/eslint-plugin-next": "^16.1.6",
     "@tirely/eslint": "*",
     "@tirely/typescript": "*",
     "@types/node": "^25.3.5",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
+    "eslint-plugin-react-hooks": "^5.2.0",
     "typescript": "^5.9.3"
   }
 }

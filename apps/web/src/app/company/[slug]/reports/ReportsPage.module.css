@@ -1,0 +1,131 @@
+.pageRoot {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.pageHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.panelGrid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+.panelWide {
+  grid-column: span 1;
+}
+
+.panelCard {
+  height: 100%;
+}
+
+.panelBody {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  height: 100%;
+}
+
+.panelHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.panelTitleWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.panelTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.tooltipIcon {
+  color: var(--gray-9);
+  cursor: help;
+  flex: none;
+}
+
+.chartWrap {
+  width: 100%;
+  height: 19rem;
+}
+
+.donutWrap {
+  width: 100%;
+  height: 16rem;
+}
+
+.kpiGrid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
+}
+
+.kpiTile {
+  border: 1px solid var(--gray-5);
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(8, 145, 178, 0.04), rgba(15, 23, 42, 0.02));
+  padding: 1rem;
+}
+
+.metricValue {
+  font-size: 1.85rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--gray-12);
+}
+
+.metricLabel {
+  font-size: 0.9rem;
+  color: var(--gray-11);
+}
+
+.complianceMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.tableHeaderButton {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+}
+
+.rangeControl {
+  min-width: 7rem;
+}
+
+@media (min-width: 720px) {
+  .kpiGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1080px) {
+  .panelGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .panelWide {
+    grid-column: span 2;
+  }
+}

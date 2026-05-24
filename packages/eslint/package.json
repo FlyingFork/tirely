@@ -2,17 +2,10 @@
   "name": "@tirely/eslint",
   "version": "0.0.0",
   "private": true,
-  "license": "MIT",
   "type": "module",
-  "main": "index.js",
+  "main": "./index.js",
   "dependencies": {
-    "@typescript-eslint/eslint-plugin": "^8.56.1",
-    "@typescript-eslint/parser": "^8.56.1",
-    "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-import": "^2.32.0"
-  },
-  "peerDependencies": {
-    "eslint": ">=9",
-    "typescript": ">=5"
+    "eslint": "^9.30.0",
+    "typescript-eslint": "^8.35.0"
   }
 }

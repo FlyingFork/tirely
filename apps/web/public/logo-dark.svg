@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 56" width="160" height="56" role="img" aria-label="Tirely">
+  <title>Tirely</title>
+
+  <!-- Tread ring (dashed, cyan) -->
+  <circle
+    cx="28" cy="28" r="21"
+    fill="none"
+    stroke="#4CCCE6"
+    stroke-width="7.5"
+    stroke-dasharray="8 10.5"
+    stroke-linecap="round"
+  />
+
+  <!-- Rim ring (slate) -->
+  <circle
+    cx="28" cy="28" r="10.5"
+    fill="none"
+    stroke="#484848"
+    stroke-width="1.75"
+  />
+
+  <!-- Hub dot (slate) -->
+  <circle cx="28" cy="28" r="3.25" fill="#484848" />
+
+  <!-- Wordmark -->
+  <text
+    x="64" y="38"
+    font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', 'Open Sans', system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji'"
+    font-size="35"
+    font-weight="700"
+    letter-spacing="-0.01em"
+    fill="#1c2024"
+    style="line-height: 40px"
+  >Tirely</text>
+</svg>

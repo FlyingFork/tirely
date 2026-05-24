@@ -1,3 +1,3 @@
-import baseConfig from '@tirely/eslint';
+import { base } from '@tirely/eslint';
 
-export default [...baseConfig];
+export default base;

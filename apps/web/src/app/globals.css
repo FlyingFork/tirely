@@ -1,22 +1,35 @@
 :root {
-  /* Colors */
-  --color-background: #ffffff;
-  --color-foreground: #111111;
-  --color-primary: #111111;
-  --color-primary-foreground: #ffffff;
-  --color-secondary: #f5f5f5;
-  --color-secondary-foreground: #111111;
-  --color-muted: #f5f5f5;
-  --color-muted-foreground: #737373;
-  --color-accent: #f5f5f5;
-  --color-accent-foreground: #111111;
-  --color-destructive: #dc2626;
-  --color-destructive-foreground: #ffffff;
-  --color-border: #e5e5e5;
-  --color-input: #e5e5e5;
-  --color-ring: #111111;
-  --color-success: #16a34a;
-  --color-warning: #f59e0b;
+  /* Semantic surfaces */
+  --surface-page: var(--gray-2);
+  --surface-panel: var(--color-panel-solid);
+  --surface-subtle: var(--gray-3);
+  --surface-raised: var(--color-panel-translucent);
+
+  /* Text */
+  --text-primary: var(--gray-12);
+  --text-secondary: var(--gray-11);
+  --text-muted: var(--gray-10);
+
+  /* Borders */
+  --border-subtle: var(--gray-5);
+  --border-default: var(--gray-6);
+  --border-strong: var(--gray-7);
+
+  /* Accent */
+  --accent-fg: var(--accent-11);
+  --accent-bg-soft: var(--accent-a3);
+  --accent-bg-strong: var(--accent-9);
+  --focus-ring: var(--focus-8);
+
+  /* Status */
+  --status-success: var(--green-9);
+  --status-success-bg: var(--green-3);
+  --status-warning: var(--amber-9);
+  --status-warning-bg: var(--amber-3);
+  --status-danger: var(--red-9);
+  --status-danger-bg: var(--red-3);
+  --status-info: var(--cyan-9);
+  --status-info-bg: var(--cyan-3);
 
   /* Typography */
   --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
@@ -61,23 +74,32 @@
   --radius-full: 9999px;
 
   /* Shadows */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
-  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  --shadow-xs: 0 1px 1px color-mix(in srgb, var(--slate-12) 4%, transparent);
+  --shadow-sm:
+    0 1px 2px color-mix(in srgb, var(--slate-12) 6%, transparent),
+    0 1px 1px color-mix(in srgb, var(--slate-12) 4%, transparent);
+  --shadow-md:
+    0 4px 8px color-mix(in srgb, var(--slate-12) 8%, transparent),
+    0 2px 4px color-mix(in srgb, var(--slate-12) 4%, transparent);
+  --shadow-lg:
+    0 12px 24px color-mix(in srgb, var(--slate-12) 10%, transparent),
+    0 4px 8px color-mix(in srgb, var(--slate-12) 6%, transparent);
 
-  /* Transitions */
-  --duration-fast: 100ms;
-  --duration-normal: 200ms;
-  --duration-slow: 300ms;
+  /* Motion */
+  --duration-fast: 120ms;
+  --duration-base: 180ms;
+  --duration-slow: 240ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
 
   /* Z-index */
   --z-dropdown: 50;
   --z-modal: 100;
   --z-tooltip: 150;
   --z-toast: 200;
+
 }
 
-/* Reset */
 *,
 *::before,
 *::after {
@@ -90,14 +112,17 @@ html {
   font-family: var(--font-sans);
   font-size: var(--font-size-base);
   line-height: var(--line-height-normal);
-  color: var(--color-foreground);
-  background-color: var(--color-background);
+  color: var(--text-primary);
+  background-color: var(--surface-page);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 body {
   min-height: 100vh;
+  background: var(--surface-page);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
 }
 
 a {
@@ -114,4 +139,173 @@ input,
 textarea,
 select {
   font: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.anim-fade-in {
+  animation: fade-in var(--duration-base) var(--ease-out) both;
+}
+
+.anim-slide-up {
+  animation: slide-up var(--duration-base) var(--ease-out) both;
+}
+
+.anim-slide-in-right {
+  animation: slide-in-right var(--duration-base) var(--ease-out) both;
+}
+
+.anim-scale-in {
+  animation: scale-in var(--duration-base) var(--ease-out) both;
+}
+
+/* Toast */
+.toast-viewport {
+  position: fixed;
+  right: var(--space-4);
+  bottom: var(--space-4);
+  z-index: var(--z-toast);
+  display: flex;
+  width: 360px;
+  max-width: calc(100vw - var(--space-8));
+  flex-direction: column;
+  gap: var(--space-2);
+  outline: none;
+  list-style: none;
+}
+
+.toast {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background-color: var(--surface-panel);
+  box-shadow: var(--shadow-lg);
+}
+
+.toast[data-state='open'] {
+  animation: toast-slide-in 150ms var(--ease-out);
+}
+
+.toast[data-state='closed'] {
+  animation: toast-hide 100ms ease-in forwards;
+}
+
+.toast[data-swipe='move'] {
+  transform: translateX(var(--radix-toast-swipe-move-x));
+}
+
+.toast[data-swipe='end'] {
+  animation: toast-swipe-out 100ms ease-out forwards;
+}
+
+.toast-success {
+  border-color: var(--green-6);
+  background-color: var(--status-success-bg);
+}
+
+.toast-error {
+  border-color: var(--red-6);
+  background-color: var(--status-danger-bg);
+}
+
+.toast-info {
+  border-color: var(--cyan-6);
+  background-color: var(--status-info-bg);
+}
+
+.toast-title {
+  color: var(--text-primary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.toast-description {
+  color: var(--text-secondary);
+  font-size: var(--font-size-xs);
+}
+
+@keyframes toast-slide-in {
+  from {
+    transform: translateX(calc(100% + var(--space-4)));
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes toast-hide {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes toast-swipe-out {
+  from {
+    transform: translateX(var(--radix-toast-swipe-end-x));
+  }
+  to {
+    transform: translateX(calc(100% + var(--space-4)));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .anim-fade-in,
+  .anim-slide-up,
+  .anim-slide-in-right,
+  .anim-scale-in,
+  .toast {
+    animation: none !important;
+    transition: none !important;
+  }
 }

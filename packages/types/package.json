@@ -9,9 +9,13 @@
     "check-types": "tsc --noEmit",
     "lint": "eslint ."
   },
+  "dependencies": {
+    "@tirely/database": "*",
+    "@tirely/validators": "*"
+  },
   "devDependencies": {
-    "@tirely/typescript": "*",
     "@tirely/eslint": "*",
+    "@tirely/typescript": "*",
     "typescript": "^5.9.3"
   }
 }

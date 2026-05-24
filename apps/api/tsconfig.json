@@ -1,5 +1,5 @@
 {
-  "extends": "@tirely/typescript/api.json",
+  "extends": "@tirely/typescript/library.json",
   "compilerOptions": {
     "rootDir": "./src",
     "outDir": "./dist"

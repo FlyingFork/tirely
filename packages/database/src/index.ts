@@ -1,6 +1,11 @@
+/**
+ * Server-side Prisma exports.
+ * Use './client-types.ts' for client-safe enum exports.
+ */
+
 import { PrismaPg } from '@prisma/adapter-pg';
 
-import { PrismaClient } from './generated/prisma/client.js';
+import { PrismaClient } from './generated/prisma/client';
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
@@ -21,4 +26,7 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 export { PrismaClient };
-export * from './generated/prisma/client.js';
+
+// Server-side only.
+export type * from './generated/prisma/client';
+export * from './generated/prisma/enums';

@@ -8,6 +8,8 @@
     "moduleResolution": "bundler",
     "plugins": [{ "name": "next" }],
     "allowJs": true,
-    "incremental": true
+    "incremental": true,
+    "declaration": false,
+    "declarationMap": false
   }
 }

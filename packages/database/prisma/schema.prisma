@@ -7,6 +7,127 @@ datasource db {
   provider = "postgresql"
 }
 
+enum CompanyRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum CompanyStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum TireStatus {
+  IN_STOCK
+  MOUNTED
+  RETREADING
+  DISPOSED
+}
+
+enum TireEventType {
+  PURCHASED
+  MOUNTED
+  DISMOUNTED
+  ROTATED
+  SENT_FOR_RETREADING
+  RETURNED_FROM_RETREADING
+  DISPOSED
+}
+
+enum DismountReason {
+  REPLACEMENT
+  SEASONAL_SWAP
+  END_OF_LIFE
+  SENT_FOR_RETREADING
+}
+
+enum InspectionType {
+  DAILY_CHECK
+  DETAILED
+}
+
+enum TireCondition {
+  GOOD
+  MINOR_WEAR
+  CONCERN
+}
+
+enum TireConditionDetailed {
+  GOOD
+  NEEDS_MONITORING
+  NEEDS_REPLACEMENT
+}
+
+enum MaintenanceType {
+  TIRE_REPLACEMENT
+  TIRE_REPAIR
+  RETREADING_SEND_OFF
+  RETREADING_RETURN
+  OTHER
+}
+
+enum CatalogEntryStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum TireCategory {
+  STEER
+  DRIVE
+  TRAILER
+  ALL_POSITION
+  WINTER
+  OTHER
+}
+
+enum AuditAction {
+  COMPANY_CREATED
+  COMPANY_SUSPENDED
+  COMPANY_REACTIVATED
+  USER_LOGIN
+  USER_LOGOUT
+  USER_LOGIN_FAILED
+  USER_ROLE_CHANGED
+  COMPANY_REQUEST_SUBMITTED
+  COMPANY_REQUEST_APPROVED
+  COMPANY_REQUEST_REJECTED
+  VEHICLE_CREATED
+  VEHICLE_UPDATED
+  VEHICLE_ARCHIVED
+  TIRE_CREATED
+  TIRE_STATUS_CHANGED
+  TIRE_DISPOSED
+  FITMENT_OVERRIDE
+  INSPECTION_COMPLETED
+  MAINTENANCE_LOGGED
+  COMPANY_SETTINGS_UPDATED
+  USER_INVITED
+  USER_DEACTIVATED
+  USER_REACTIVATED
+  DEPOT_CREATED
+  DEPOT_UPDATED
+  DEPOT_ARCHIVED
+  DEPOT_UNARCHIVED
+  CATALOG_BRAND_SUBMITTED
+  CATALOG_MODEL_SUBMITTED
+  CATALOG_BRAND_APPROVED
+  CATALOG_BRAND_REJECTED
+  CATALOG_MODEL_APPROVED
+  CATALOG_MODEL_REJECTED
+  VEHICLE_DRIVER_ASSIGNED
+  VEHICLE_DRIVER_UNASSIGNED
+  VEHICLE_COMPATIBLE_SIZES_UPDATED
+  MILEAGE_LOGGED
+  TIRE_SET_CREATED
+  TIRE_SET_UPDATED
+  TIRE_SET_DISSOLVED
+  TIRES_MOUNTED
+  TIRES_DISMOUNTED
+  TIRES_ROTATED
+}
+
 model User {
   id            String    @id
   name          String
@@ -21,6 +142,18 @@ model User {
   banExpires    DateTime?
   sessions      Session[]
   accounts      Account[]
+
+  firstLogin Boolean @default(true)
+
+  companyId         String?
+  company           Company?           @relation(fields: [companyId], references: [id])
+  vehicle           Vehicle?
+  mileageEntries    MileageEntry[]
+  inspections       Inspection[]
+  maintenanceEvents MaintenanceEvent[]
+  tireEvents        TireEvent[]
+  auditLogsAsActor  AuditLog[]         @relation("AuditActor")
+  auditLogs         AuditLog[]         @relation("AuditUser")
 
   @@unique([email])
   @@map("user")
@@ -73,4 +206,437 @@ model Verification {
 
   @@index([identifier])
   @@map("verification")
+}
+
+model CompanyRequest {
+  id                 String               @id @default(cuid())
+  companyName        String
+  companyEmail       String
+  contactPersonName  String
+  contactPersonPhone String
+  fleetSizeEstimate  String
+  depotCountEstimate Int
+  message            String?
+  status             CompanyRequestStatus @default(PENDING)
+  rejectionReason    String?
+  reviewedByUserId   String?
+  reviewedAt         DateTime?
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+
+  company Company?
+
+  @@index([status])
+  @@index([companyEmail])
+}
+
+model Company {
+  id           String        @id @default(cuid())
+  name         String
+  slug         String        @unique
+  contactEmail String
+  contactPhone String?
+  address      String?
+  status       CompanyStatus @default(ACTIVE)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  companyRequestId String?         @unique
+  companyRequest   CompanyRequest? @relation(fields: [companyRequestId], references: [id])
+
+  users             User[]
+  companySettings   CompanySettings?
+  depots            Depot[]
+  vehicles          Vehicle[]
+  tires             Tire[]
+  tireSets          TireSet[]
+  inspections       Inspection[]
+  maintenanceEvents MaintenanceEvent[]
+  catalogModels     CatalogModel[]
+  auditLogs         AuditLog[]
+
+  @@index([status])
+}
+
+model CompanySettings {
+  id        String  @id @default(cuid())
+  companyId String  @unique
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  // Algorithm configuration
+  minimumTreadDepth            Float @default(3.0) // mm
+  maximumAgeMonths             Int   @default(72) // months
+  defaultExpectedMileage       Int   @default(150000) // km
+  staleInspectionThresholdDays Int   @default(90) // days
+  defaultWearRate              Float @default(0.00005) // mm/km
+  retreadingLifespanReduction  Float @default(0.15) // percentage (0.15 = 15%)
+  maxRetreadingCycles          Int   @default(3)
+
+  // Algorithm weights
+  treadWeight     Float @default(0.60)
+  mileageWeight   Float @default(0.25)
+  ageWeight       Float @default(0.10)
+  conditionWeight Float @default(0.05)
+
+  // Alert thresholds
+  alertInfoThreshold     Float @default(70.0) // percentage
+  alertUrgentThreshold   Float @default(85.0) // percentage
+  alertCriticalThreshold Float @default(95.0) // percentage
+  imbalanceThreshold     Float @default(15.0) // percentage gap
+
+  @@map("company_settings")
+}
+
+model Depot {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  name        String
+  address     String?
+  contactInfo String?
+  archived    Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  vehicles    Vehicle[]
+  tires       Tire[]
+
+  @@index([companyId])
+  @@index([companyId, archived])
+}
+
+model Vehicle {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  depotId   String
+  depot     Depot   @relation(fields: [depotId], references: [id])
+
+  licensePlate String
+  make         String
+  model        String
+  year         Int
+  vin          String?
+  vehicleType  String?
+  archived     Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  assignedDriverId String? @unique
+  assignedDriver   User?   @relation(fields: [assignedDriverId], references: [id])
+
+  vehicleCompatibleSizes VehicleCompatibleSize[]
+  mileageEntries         MileageEntry[]
+  tireEvents             TireEvent[]
+  inspections            Inspection[]
+  maintenanceEvents      MaintenanceEvent[]
+
+  @@unique([companyId, licensePlate])
+  @@index([companyId])
+  @@index([depotId])
+  @@index([companyId, depotId])
+  @@index([companyId, archived])
+}
+
+model VehicleCompatibleSize {
+  id        String  @id @default(cuid())
+  vehicleId String
+  vehicle   Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  width       Int // e.g., 315
+  aspectRatio Int // e.g., 80
+  rimDiameter Float // e.g., 22.5
+
+  axlePosition String? // e.g., "FRONT", "DRIVE", "TRAILER", "SPARE" — null means any position
+
+  @@index([vehicleId])
+}
+
+model MileageEntry {
+  id           String  @id @default(cuid())
+  vehicleId    String
+  vehicle      Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  recordedById String
+  recordedBy   User    @relation(fields: [recordedById], references: [id])
+
+  odometer  Int
+  date      DateTime
+  createdAt DateTime @default(now())
+
+  @@index([vehicleId])
+  @@index([vehicleId, date])
+}
+
+model Tire {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id])
+
+  // Tire identity
+  brand       String
+  model       String
+  width       Int // e.g., 315
+  aspectRatio Int // e.g., 80
+  rimDiameter Float // e.g., 22.5
+  loadIndex   String?
+  speedRating String?
+  dotCode     String?
+
+  serialNumber String?
+  purchasePrice Float? // local currency
+
+  // Lifecycle data
+  purchaseDate            DateTime
+  conditionNotes          String?
+  initialTreadDepth       Float // mm
+  expectedMileageLifespan Int? // km (null = use company default)
+  status                  TireStatus @default(IN_STOCK)
+  retreadingCount           Int        @default(0)
+  currentLifecycleNumber    Int        @default(1)
+  currentLifecycleStartDate DateTime?
+
+  // Current mounting (denormalized for fast queries — authoritative data is in TireEvent)
+  currentVehicleId String?
+  currentPosition  String? // e.g., "FRONT_LEFT", "REAR_RIGHT", "SPARE"
+
+  // Current depot (when not mounted)
+  depotId String?
+  depot   Depot?  @relation(fields: [depotId], references: [id], onDelete: SetNull)
+
+  // Algorithm snapshot (recalculated on triggers, stored for fast reads)
+  usagePercentage   Float?
+  usageStatus       String? // e.g., "Good", "Critical"
+  usageIsEstimated  Boolean   @default(false)
+  usageCalculatedAt DateTime?
+
+  // Latest inspection data (denormalized for algorithm)
+  latestTreadDepth        Float? // mm
+  latestCondition         TireConditionDetailed?
+  latestInspectionDate    DateTime?
+  accumulatedMileage      Int                    @default(0) // km
+  mileageAtLastInspection Int                    @default(0) // km
+
+  // Tire set membership
+  tireSetId String?
+  tireSet   TireSet? @relation(fields: [tireSetId], references: [id])
+
+  // Catalog reference (optional — links to approved catalog entry)
+  catalogModelId String?
+  catalogModel   CatalogModel? @relation(fields: [catalogModelId], references: [id], onDelete: SetNull)
+
+  archived  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  events            TireEvent[]
+  inspectionResults InspectionTire[]
+  maintenanceEvents MaintenanceEventTire[]
+
+  @@index([companyId])
+  @@index([companyId, status])
+  @@index([companyId, depotId])
+  @@index([currentVehicleId])
+  @@index([usagePercentage])
+  @@index([tireSetId])
+}
+
+model TireSet {
+  id        String   @id @default(cuid())
+  companyId String
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  tires Tire[]
+
+  @@index([companyId])
+}
+
+model TireEvent {
+  id            String   @id @default(cuid())
+  tireId        String
+  tire          Tire     @relation(fields: [tireId], references: [id], onDelete: Cascade)
+  vehicleId     String?
+  vehicle       Vehicle? @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
+  performedById String?
+  performedBy   User?    @relation(fields: [performedById], references: [id])
+
+  eventType  TireEventType
+  position   String? // Tire position at time of event (e.g., "FRONT_LEFT")
+  odometerAt Int? // Vehicle odometer at time of event
+  date       DateTime
+
+  // Dismount-specific
+  dismountReason DismountReason?
+
+  // Retreading-specific
+  newTreadDepth Float? // Tread depth after retreading (for RETURNED_FROM_RETREADING)
+
+  // Fitment override
+  fitmentOverride Boolean @default(false) // True if the user overrode a size mismatch warning
+  fitmentNote     String? // Details of the mismatch if overridden
+
+  // Lifecycle context
+  lifecycleNumber Int @default(1) // Which lifecycle this event belongs to (resets on retreading)
+
+  createdAt DateTime @default(now())
+
+  @@index([tireId])
+  @@index([tireId, date])
+  @@index([vehicleId])
+  @@index([performedById])
+}
+
+model Inspection {
+  id          String  @id @default(cuid())
+  companyId   String
+  company     Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  vehicleId   String
+  vehicle     Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Restrict)
+  inspectorId String
+  inspector   User    @relation(fields: [inspectorId], references: [id])
+
+  type         InspectionType
+  date         DateTime
+  overallNotes String?
+  createdAt    DateTime       @default(now())
+
+  // Per-tire results
+  tireResults InspectionTire[]
+
+  @@index([companyId])
+  @@index([inspectorId])
+  @@index([vehicleId])
+  @@index([vehicleId, date])
+}
+
+model InspectionTire {
+  id           String     @id @default(cuid())
+  inspectionId String
+  inspection   Inspection @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
+  tireId       String
+  tire         Tire       @relation(fields: [tireId], references: [id])
+  position     String // Position at time of inspection
+
+  // Daily check fields
+  visualCondition TireCondition? // GOOD, MINOR_WEAR, CONCERN
+  anomalyNotes    String?
+
+  // Detailed inspection fields
+  treadDepth   Float? // mm
+  tirePressure Float? // bar or psi
+  damageNotes  String?
+  condition    TireConditionDetailed? // GOOD, NEEDS_MONITORING, NEEDS_REPLACEMENT
+
+  @@index([inspectionId])
+  @@index([tireId])
+}
+
+model MaintenanceEvent {
+  id            String  @id @default(cuid())
+  companyId     String
+  company       Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  vehicleId     String
+  vehicle       Vehicle @relation(fields: [vehicleId], references: [id])
+  performedById String
+  performedBy   User    @relation(fields: [performedById], references: [id])
+
+  type        MaintenanceType
+  date        DateTime
+  description String?
+  cost        Float? // optional cost tracking
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  // Related tires
+  tires MaintenanceEventTire[]
+
+  @@index([companyId])
+  @@index([vehicleId])
+  @@index([vehicleId, date])
+}
+
+model MaintenanceEventTire {
+  id                 String           @id @default(cuid())
+  maintenanceEventId String
+  maintenanceEvent   MaintenanceEvent @relation(fields: [maintenanceEventId], references: [id], onDelete: Cascade)
+  tireId             String
+  tire               Tire             @relation(fields: [tireId], references: [id])
+
+  @@index([maintenanceEventId])
+  @@index([tireId])
+}
+
+model CatalogBrand {
+  id        String             @id @default(cuid())
+  name      String             @unique
+  status    CatalogEntryStatus @default(APPROVED) // Seed data is pre-approved
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+
+  // Relations
+  models CatalogModel[]
+}
+
+model CatalogModel {
+  id                       String             @id @default(cuid())
+  brandId                  String
+  brand                    CatalogBrand       @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  name                     String
+  category                 TireCategory?
+  defaultInitialTreadDepth Float? // mm
+  defaultExpectedMileage   Int? // km
+  status                   CatalogEntryStatus @default(PENDING)
+  submittedByCompanyId     String?
+  submittedByCompany       Company?           @relation(fields: [submittedByCompanyId], references: [id], onDelete: SetNull)
+  createdAt                DateTime           @default(now())
+  updatedAt                DateTime           @updatedAt
+
+  // Relations
+  sizes CatalogModelSize[]
+  tires Tire[]
+
+  @@unique([brandId, name])
+  @@index([brandId])
+  @@index([status])
+  @@index([submittedByCompanyId])
+}
+
+model CatalogModelSize {
+  id             String       @id @default(cuid())
+  catalogModelId String
+  catalogModel   CatalogModel @relation(fields: [catalogModelId], references: [id], onDelete: Cascade)
+
+  width       Int
+  aspectRatio Int
+  rimDiameter Float
+
+  @@unique([catalogModelId, width, aspectRatio, rimDiameter])
+  @@index([catalogModelId])
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  companyId   String?
+  company     Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  actorUserId String?
+  actor       User?    @relation("AuditActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  action     AuditAction
+  entityType String? // e.g., "Vehicle", "Tire", "User"
+  entityId   String? // ID of the affected entity
+  details    String? // JSON string with additional context
+  ipAddress  String?
+  createdAt  DateTime    @default(now())
+  userId     String?
+  user       User?       @relation("AuditUser", fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([companyId])
+  @@index([actorUserId])
+  @@index([action])
+  @@index([createdAt])
+  @@index([companyId, createdAt])
 }

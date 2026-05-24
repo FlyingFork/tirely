@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 56 56" width="56" height="56" role="img" aria-label="Tirely">
+  <title>Tirely</title>
+
+  <!-- Tread ring (dashed, cyan) -->
+  <circle
+    cx="28" cy="28" r="21"
+    fill="none"
+    stroke="#4CCCE6"
+    stroke-width="7.5"
+    stroke-dasharray="8 10.5"
+    stroke-linecap="round"
+  />
+
+  <!-- Rim ring (slate) -->
+  <circle
+    cx="28" cy="28" r="10.5"
+    fill="none"
+    stroke="#484848"
+    stroke-width="1.75"
+  />
+
+  <!-- Hub dot (slate) -->
+  <circle cx="28" cy="28" r="3.25" fill="#484848" />
+</svg>
